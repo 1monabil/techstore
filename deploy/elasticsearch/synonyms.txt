@@ -1,0 +1,16 @@
+# Hardware jargon synonyms (Solr format). Applied at SEARCH time only via synonym_graph,
+# so editing this file needs an index close/open or a reload_search_analyzers call, not a reindex.
+gpu, graphics card, video card
+ssd, solid state drive
+ram, memory
+nvme, m.2
+monitor, display, screen
+wifi, wi-fi, wireless
+hdd, hard drive, hard disk
+psu, power supply
+laptop, notebook
+smartphone, phone, mobile phone, cell phone
+cpu, processor
+mobo, motherboard, mainboard
+headset, headphones
+router, wireless router

@@ -1,0 +1,75 @@
+<app-site-header [showSearch]="false" />
+
+<main>
+  <section class="mx-auto max-w-[1320px] px-4 pt-14 pb-16 md:px-6 md:pt-24 md:pb-24">
+    <div class="max-w-[880px]">
+      <p class="type-label mb-5">
+        @if (totalParts()) {
+          {{ count(totalParts()) }} parts across {{ home()?.featuredCategories?.length }} categories
+        } @else {
+          Laptops · components · peripherals
+        }
+      </p>
+      <h1 class="type-display text-[clamp(2.6rem,7.4vw,5.4rem)]">Find the exact&nbsp;part.</h1>
+      <p class="mt-6 max-w-[620px] text-[17px] leading-relaxed text-muted md:text-[18px]">
+        Search by model number or spec. Typos are fine: “assus rog” still finds <mark>ASUS ROG</mark>.
+      </p>
+      <app-search-box class="mt-9" size="hero" />
+      <div class="mt-5 flex flex-wrap items-center gap-2">
+        <span class="type-label mr-1">Try</span>
+        @for (q of examples; track q) {
+          <a [routerLink]="['/products']" [queryParams]="{ q }"
+             class="rounded-[var(--radius-chip)] border border-line bg-card px-2.5 py-1 font-mono text-[12.5px] transition-colors hover:border-ink">{{ q }}</a>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-[1320px] px-4 md:px-6" aria-labelledby="cat-title">
+    <div class="mb-5 flex items-baseline justify-between border-t border-ink pt-4">
+      <h2 id="cat-title" class="type-title text-[22px]">Shop by category</h2>
+      <a routerLink="/products" class="text-[14px] text-mask underline-offset-4 hover:underline">All products</a>
+    </div>
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      @if (loading()) {
+        @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track i) {
+          <div class="h-[148px] rounded-[var(--radius-card)] skeleton"></div>
+        }
+      } @else {
+        @for (c of home()?.featuredCategories ?? []; track c.slug) {
+          <a [routerLink]="['/products']" [queryParams]="{ category: c.slug }"
+             class="group overflow-hidden rounded-[var(--radius-card)] border border-line bg-card transition-colors hover:border-ink">
+            <app-part-glyph class="aspect-[16/10] w-full transition-colors group-hover:text-ink" [part]="c.slug" />
+            <div class="flex items-baseline justify-between gap-2 px-3 py-2.5">
+              <span class="text-[14px] font-semibold">{{ c.name }}</span>
+              <span class="font-mono text-[11.5px] text-muted">{{ count(c.productCount) }}</span>
+            </div>
+          </a>
+        }
+      }
+    </div>
+  </section>
+
+  @for (row of [
+    { title: 'Best sellers', id: 'best', items: home()?.bestSellers, sort: 'bestselling' },
+    { title: 'New arrivals', id: 'new', items: home()?.newArrivals, sort: 'newest' }
+  ]; track row.id) {
+    <section class="mx-auto mt-16 max-w-[1320px] px-4 md:px-6" [attr.aria-labelledby]="row.id + '-title'">
+      <div class="mb-5 flex items-baseline justify-between border-t border-ink pt-4">
+        <h2 [id]="row.id + '-title'" class="type-title text-[22px]">{{ row.title }}</h2>
+        <a [routerLink]="['/products']" [queryParams]="{ sort: row.sort }" class="text-[14px] text-mask underline-offset-4 hover:underline">See all</a>
+      </div>
+      <div class="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 md:mx-0 md:px-0" tabindex="0" [attr.aria-label]="row.title">
+        @if (loading()) {
+          @for (i of [1, 2, 3, 4, 5]; track i) {
+            <div class="h-[360px] w-[240px] shrink-0 rounded-[var(--radius-card)] skeleton"></div>
+          }
+        } @else {
+          @for (p of row.items ?? []; track p.id) {
+            <app-product-card class="w-[240px] shrink-0 snap-start" [product]="p" [showSnippet]="false" />
+          }
+        }
+      </div>
+    </section>
+  }
+</main>

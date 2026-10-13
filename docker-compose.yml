@@ -1,0 +1,98 @@
+# Day-to-day dev: only Elasticsearch runs in Docker (SQL Server is the local .\SQLEXPRESS).
+#   docker compose up -d elasticsearch          # ES only
+#   docker compose --profile tools up -d        # + Kibana
+# Optional full stack in containers (not used for daily dev):
+#   docker compose --profile full up --build
+name: techstore
+
+x-dotnet-env: &dotnet-env
+  ConnectionStrings__Sql: "Server=sqlserver,1433;Database=TechStore;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Dev_Only_Passw0rd!};TrustServerCertificate=True;Encrypt=False"
+  Elasticsearch__Url: "http://elasticsearch:9200"
+  Search__CursorSigningKey: "${CURSOR_SIGNING_KEY:-dev-only-cursor-key}"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.3
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"   # local dev only
+      xpack.ml.enabled: "false"
+      ES_JAVA_OPTS: "-Xms${ES_HEAP:-1536m} -Xmx${ES_HEAP:-1536m}"
+      cluster.routing.allocation.disk.threshold_enabled: "false"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile: { soft: 65536, hard: 65536 }
+    ports: ["9200:9200"]
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+      - ./deploy/elasticsearch/synonyms.txt:/usr/share/elasticsearch/config/analysis/synonyms.txt:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=2s || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 20s
+
+  kibana:
+    profiles: ["tools", "full"]
+    image: docker.elastic.co/kibana/kibana:9.5.3
+    environment:
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+      NODE_OPTIONS: "--max-old-space-size=512"
+    ports: ["5601:5601"]
+    depends_on:
+      elasticsearch: { condition: service_healthy }
+
+  sqlserver:
+    profiles: ["full"]
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Dev_Only_Passw0rd!}"
+      MSSQL_MEMORY_LIMIT_MB: "2048"
+    ports: ["1433:1433"]
+    volumes: [sqldata:/var/opt/mssql]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  api:
+    profiles: ["full"]
+    build: { context: ., dockerfile: src/TechStore.Api/Dockerfile }
+    environment:
+      <<: *dotnet-env
+      ASPNETCORE_ENVIRONMENT: "Development"
+      Database__SeedOnStartup: "true"
+      Admin__ApiKey: "${ADMIN_API_KEY:-dev-admin-key}"
+    ports: ["5080:8080"]
+    depends_on:
+      sqlserver: { condition: service_healthy }
+      elasticsearch: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/health/live || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 15s
+
+  indexer:
+    profiles: ["full"]
+    build: { context: ., dockerfile: src/TechStore.Indexer/Dockerfile }
+    environment:
+      <<: *dotnet-env
+    depends_on:
+      api: { condition: service_healthy }
+
+  web:
+    profiles: ["full"]
+    build: { context: ./client/techstore-web }
+    ports: ["4200:80"]
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  sqldata:
+  esdata:

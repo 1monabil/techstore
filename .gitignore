@@ -1,0 +1,14 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+node_modules/
+dist/
+.angular/
+*.log
+TestResults/
+.env
+generator-state.json
+tests/load/results/
+.idea/

@@ -1,0 +1,69 @@
+<form class="box" role="search" (submit)="$event.preventDefault(); submit()" (focusout)="onFocusOut($event)">
+  <label class="sr-only" [for]="uid">Search products</label>
+  <svg class="lens" viewBox="0 0 20 20" aria-hidden="true">
+    <circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+    <path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+  </svg>
+  <input
+    #field
+    [id]="uid"
+    class="field"
+    type="search"
+    role="combobox"
+    autocomplete="off"
+    spellcheck="false"
+    aria-autocomplete="list"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="uid + '-list'"
+    [attr.aria-activedescendant]="activeId()"
+    [placeholder]="size() === 'hero' ? 'Model number, spec or brand — e.g. rtx 4070 laptop' : 'Search parts'"
+    [value]="query()"
+    (input)="onInput(field.value)"
+    (keydown)="onKeydown($event)"
+    (focus)="onFocus()"
+  />
+  <button class="go" type="submit">
+    <span class="sr-only">Search</span>
+    <span aria-hidden="true">Search</span>
+  </button>
+
+  @if (open()) {
+    <div class="panel" [id]="uid + '-list'" role="listbox" aria-label="Suggestions">
+      <div class="col">
+        @for (group of textGroups(); track group.key) {
+          <div role="group" [attr.aria-labelledby]="uid + '-g-' + group.key">
+            <p class="group-label" [id]="uid + '-g-' + group.key">{{ group.label }}</p>
+            @for (o of group.options; track o.index) {
+              <div class="opt" role="option" [id]="uid + '-opt-' + o.index" [attr.aria-selected]="active() === o.index"
+                   (mousedown)="$event.preventDefault()" (click)="choose(o)" (mouseenter)="active.set(o.index)">
+                <ng-container *ngTemplateOutlet="taped; context: { $implicit: o.label }" />
+                @if (o.meta) { <span class="opt-meta">{{ o.meta }}</span> }
+              </div>
+            }
+          </div>
+        }
+      </div>
+      @if (instant().length) {
+        <div class="col instant" role="group" [attr.aria-labelledby]="uid + '-g-instant'">
+          <p class="group-label" [id]="uid + '-g-instant'">Top matches</p>
+          @for (o of instant(); track o.index) {
+            <div class="opt hit" role="option" [id]="uid + '-opt-' + o.index" [attr.aria-selected]="active() === o.index"
+                 (mousedown)="$event.preventDefault()" (click)="choose(o)" (mouseenter)="active.set(o.index)">
+              <app-part-glyph class="thumb" [part]="o.image" />
+              <span class="hit-body">
+                <ng-container *ngTemplateOutlet="taped; context: { $implicit: o.label }" />
+                <span class="hit-price">{{ o.meta }}</span>
+              </span>
+            </div>
+          }
+        </div>
+      }
+      <p class="hint" aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  }
+</form>
+
+<!-- The user's query, taped over wherever it matches the suggestion. -->
+<ng-template #taped let-text>
+  <span class="opt-text">@for (s of segments(text); track $index) { @if (s.match) { <mark>{{ s.text }}</mark> } @else { <span>{{ s.text }}</span> } }</span>
+</ng-template>

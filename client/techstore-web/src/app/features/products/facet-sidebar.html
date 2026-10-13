@@ -1,0 +1,120 @@
+<div class="facets">
+  @if (categoryFacet(); as f) {
+    @if (f.buckets.length > 1 || store.category()) {
+      <section class="group">
+        <button type="button" class="group-head" [attr.aria-expanded]="!collapsed().has('category')" (click)="toggleGroup('category')">
+          <span>Category</span><span class="chev" aria-hidden="true"></span>
+        </button>
+        @if (!collapsed().has('category')) {
+          <ul class="opts">
+            @if (store.category()) {
+              <li><button type="button" class="link-opt" (click)="store.setCategory(null)">← All categories</button></li>
+            }
+            @for (b of f.buckets; track b.value) {
+              <li>
+                <button type="button" class="link-opt" [class.on]="b.selected" [attr.aria-pressed]="b.selected" (click)="store.setCategory(b.selected ? null : b.value)">
+                  <span>{{ b.label }}</span><span class="n">{{ count(b.count) }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  }
+
+  @if (stockFacet(); as f) {
+    <section class="group">
+      <label class="switch-row">
+        <span>In stock only <span class="n">{{ count(f.buckets[0].count) }}</span></span>
+        <input type="checkbox" role="switch" class="switch" [checked]="f.buckets[0].selected"
+               (change)="store.setSingle('inStock', $any($event.target).checked ? 'true' : null)" />
+      </label>
+    </section>
+  }
+
+  @if (priceFacet(); as f) {
+    <section class="group">
+      <button type="button" class="group-head" [attr.aria-expanded]="!collapsed().has('price')" (click)="toggleGroup('price')">
+        <span>Price</span><span class="chev" aria-hidden="true"></span>
+      </button>
+      @if (!collapsed().has('price')) {
+        <div class="price">
+          <div class="dual" [style.--a.%]="pct(minDraft())" [style.--b.%]="pct(maxDraft())">
+            <input type="range" aria-label="Minimum price" [min]="bounds().lo" [max]="bounds().hi" step="1"
+                   [value]="minDraft()" (input)="onMinSlider($any($event.target).value)" (change)="applyPrice()" />
+            <input type="range" aria-label="Maximum price" [min]="bounds().lo" [max]="bounds().hi" step="1"
+                   [value]="maxDraft()" (input)="onMaxSlider($any($event.target).value)" (change)="applyPrice()" />
+          </div>
+          <form class="price-inputs" (submit)="$event.preventDefault(); applyPrice()">
+            <label><span class="sr-only">Minimum price</span>
+              <span class="cur" aria-hidden="true">$</span>
+              <input type="number" inputmode="numeric" [min]="bounds().lo" [value]="minDraft()" (change)="minDraft.set($any($event.target).valueAsNumber); applyPrice()" />
+            </label>
+            <span class="dash" aria-hidden="true">–</span>
+            <label><span class="sr-only">Maximum price</span>
+              <span class="cur" aria-hidden="true">$</span>
+              <input type="number" inputmode="numeric" [max]="bounds().hi" [value]="maxDraft()" (change)="maxDraft.set($any($event.target).valueAsNumber); applyPrice()" />
+            </label>
+          </form>
+          <ul class="opts">
+            @for (b of f.buckets; track b.value) {
+              <li>
+                <button type="button" class="link-opt" [class.on]="b.selected" [attr.aria-pressed]="b.selected"
+                        (click)="pickPriceBucket(b.value, b.selected)">
+                  <span>{{ b.label }}</span><span class="n">{{ count(b.count) }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+  }
+
+  @if (ratingFacet(); as f) {
+    <section class="group">
+      <button type="button" class="group-head" [attr.aria-expanded]="!collapsed().has('rating')" (click)="toggleGroup('rating')">
+        <span>Rating</span><span class="chev" aria-hidden="true"></span>
+      </button>
+      @if (!collapsed().has('rating')) {
+        <ul class="opts">
+          @for (b of f.buckets; track b.value) {
+            <li>
+              <button type="button" class="link-opt" [class.on]="b.selected" [attr.aria-pressed]="b.selected"
+                      (click)="store.setSingle('minRating', b.selected ? null : b.value)">
+                <span>★ {{ b.label }}</span><span class="n">{{ count(b.count) }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  @for (f of termFacets(); track f.key) {
+    <section class="group">
+      <button type="button" class="group-head" [attr.aria-expanded]="!collapsed().has(f.key)" (click)="toggleGroup(f.key)">
+        <span>{{ f.label }}</span><span class="chev" aria-hidden="true"></span>
+      </button>
+      @if (!collapsed().has(f.key)) {
+        <ul class="opts">
+          @for (b of shown(f); track b.value) {
+            <li>
+              <label class="check" [class.on]="b.selected">
+                <input type="checkbox" [checked]="b.selected" (change)="store.toggle(f.key, b.value)" />
+                <span class="lbl">{{ b.label }}</span>
+                <span class="n">{{ count(b.count) }}</span>
+              </label>
+            </li>
+          }
+        </ul>
+        @if (f.buckets.length > visible + 1) {
+          <button type="button" class="more" (click)="toggleMore(f.key)">
+            {{ expanded().has(f.key) ? 'Show fewer' : 'Show ' + (f.buckets.length - visible) + ' more' }}
+          </button>
+        }
+      }
+    </section>
+  }
+</div>

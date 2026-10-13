@@ -1,0 +1,252 @@
+:host {
+  display: block;
+  font-size: 14px;
+}
+
+.group {
+  border-top: 1px solid var(--color-line);
+  padding: 12px 0 14px;
+}
+.group:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.group-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chev {
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--color-muted);
+  border-bottom: 1.5px solid var(--color-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 150ms ease;
+}
+.group-head[aria-expanded="false"] .chev {
+  transform: rotate(-45deg);
+}
+
+.opts {
+  display: grid;
+  gap: 1px;
+}
+
+.n {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-muted);
+}
+
+.link-opt,
+.check {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  border-radius: 3px;
+  text-align: left;
+  cursor: pointer;
+}
+.link-opt:hover,
+.check:hover {
+  background: color-mix(in oklab, var(--color-ink), transparent 94%);
+}
+.link-opt.on {
+  font-weight: 600;
+}
+.link-opt.on > span:first-child {
+  /* the active choice is "taped" like every other match */
+  background-image: linear-gradient(var(--color-tape), var(--color-tape));
+  background-size: 100% 70%;
+  background-position: 0 65%;
+  background-repeat: no-repeat;
+  padding: 0 0.12em;
+  margin-left: -0.12em;
+}
+
+.check {
+  justify-content: flex-start;
+}
+.check .lbl {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.check input {
+  appearance: none;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--color-trace);
+  border-radius: 2px;
+  background: var(--color-card);
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+}
+.check input::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid var(--color-on-mask);
+  border-bottom: 2px solid var(--color-on-mask);
+  transform: rotate(-45deg) translate(1px, -1px);
+  opacity: 0;
+}
+.check input:checked {
+  background: var(--color-mask);
+  border-color: var(--color-mask);
+}
+.check input:checked::after {
+  opacity: 1;
+}
+.check.on .lbl {
+  font-weight: 600;
+}
+
+.more {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--color-mask);
+  cursor: pointer;
+}
+.more:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* in-stock switch */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.switch {
+  appearance: none;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-trace);
+  position: relative;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-card);
+  transition: transform 150ms ease;
+}
+.switch:checked {
+  background: var(--color-mask);
+}
+.switch:checked::after {
+  transform: translateX(14px);
+}
+
+/* price */
+.price {
+  display: grid;
+  gap: 12px;
+}
+.dual {
+  position: relative;
+  height: 22px;
+  margin: 2px 7px 0;
+}
+.dual::before,
+.dual::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  height: 3px;
+  border-radius: 2px;
+}
+.dual::before {
+  left: 0;
+  right: 0;
+  background: var(--color-line);
+}
+.dual::after {
+  left: var(--a);
+  right: calc(100% - var(--b));
+  background: var(--color-mask);
+}
+.dual input {
+  position: absolute;
+  inset: 0 -7px;
+  width: calc(100% + 14px);
+  appearance: none;
+  background: none;
+  pointer-events: none;
+  z-index: 1;
+}
+.dual input::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-card);
+  border: 2px solid var(--color-mask);
+  cursor: grab;
+}
+.dual input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--color-card);
+  border: 2px solid var(--color-mask);
+  cursor: grab;
+}
+.price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.price-inputs label {
+  position: relative;
+  flex: 1;
+}
+.price-inputs .cur {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.price-inputs input {
+  width: 100%;
+  height: 32px;
+  padding: 0 6px 0 20px;
+  border: 1px solid var(--color-line);
+  border-radius: 3px;
+  background: var(--color-card);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.dash {
+  color: var(--color-muted);
+}
